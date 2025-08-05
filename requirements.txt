@@ -5,4 +5,3 @@ python-dotenv
 openpyxl
 requests
 datetime
-io
