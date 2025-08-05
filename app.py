@@ -16,7 +16,7 @@ def load_all_months():
     xls = pd.ExcelFile(sheet_url)
     data = {}
     for sheet in xls.sheet_names:
-        df = xls.parse(sheet, skiprows=5)
+        df = xls.parse(sheet)
         df.dropna(how='all', inplace=True)
         df.dropna(axis=1, how='all', inplace=True)
         
