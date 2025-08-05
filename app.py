@@ -13,16 +13,28 @@ st.title("📊 Production Dashboard (Multi-Month View)")
 # Load from Google Drive
 @st.cache_data
 def load_all_months():
-    url = sheet_url
-    xls = pd.ExcelFile(url)
+    xls = pd.ExcelFile(sheet_url)
     data = {}
     for sheet in xls.sheet_names:
         df = xls.parse(sheet, skiprows=5)
         df.dropna(how='all', inplace=True)
         df.dropna(axis=1, how='all', inplace=True)
-        df["DATE"] = pd.to_datetime(df["DATE"], errors='coerce')
+        
+        # Clean column names
+        df.columns = df.columns.str.strip().str.upper()
+        
+        # DEBUG: Print columns to verify
+        print(f"Columns in sheet '{sheet}': {df.columns.tolist()}")
+        
+        # Convert DATE column to datetime
+        if 'DATE' in df.columns:
+            df["DATE"] = pd.to_datetime(df["DATE"], errors='coerce')
+        else:
+            st.error(f"'DATE' column not found in sheet {sheet}. Check Excel structure.")
+        
         data[sheet.strip()] = df
     return data
+
 
 all_data = load_all_months()
 
