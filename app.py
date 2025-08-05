@@ -4,39 +4,38 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from dotenv import load_dotenv
 import os
-#
+from datetime import datetime
+import requests
+from io import BytesIO
+
+# Set the URL to your file (Google Drive, Dropbox, etc.)
 load_dotenv()
 sheet_url = os.getenv("GOOGLE_SHEET_URL")
+
 st.set_page_config(layout="wide")
 st.title("📊 Production Dashboard (Multi-Month View)")
 
 # Load from Google Drive
 @st.cache_data
-def load_all_months():
-    xls = pd.ExcelFile(sheet_url)
+def load_all_months_from_url(url):
+    response = requests.get(url)
+    file_data = BytesIO(response.content)
+    xls = pd.ExcelFile(file_data)
+
     data = {}
     for sheet in xls.sheet_names:
-        df = xls.parse(sheet)
+        df = xls.parse(sheet, skiprows=5)
+        df.columns = df.columns.str.strip().str.upper()
         df.dropna(how='all', inplace=True)
         df.dropna(axis=1, how='all', inplace=True)
-        
-        # Clean column names
-        df.columns = df.columns.str.strip().str.upper()
-        
-        # DEBUG: Print columns to verify
-        print(f"Columns in sheet '{sheet}': {df.columns.tolist()}")
-        
-        # Convert DATE column to datetime
-        if 'DATE' in df.columns:
-            df["DATE"] = pd.to_datetime(df["DATE"], errors='coerce')
-        else:
-            st.error(f"'DATE' column not found in sheet {sheet}. Check Excel structure.")
-        
+        if "DATE" in df.columns:
+            df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce")
         data[sheet.strip()] = df
+
     return data
 
 
-all_data = load_all_months()
+all_data = load_all_months_from_url(sheet_url)
 
 # Month selector
 month = st.selectbox("Select Month", sorted(all_data.keys()))

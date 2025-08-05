@@ -3,3 +3,6 @@ pandas
 matplotlib
 python-dotenv
 openpyxl
+requests
+datetime
+io
